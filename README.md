@@ -1,6 +1,7 @@
 # BlingSpeak
+https://blingspeaks.streamlit.app/ 
 
-Procedural alien vocalization generator. Creates expressive non-verbal sounds using formant synthesis, pitch contours, and spectral processing. Now with multi-character conversation generation.
+A procedural alien vocalization generator. Creates expressive non-verbal sounds using formant synthesis, pitch contours, and spectral processing. Now with multi-character conversation generation.
 
 ## Features
 
