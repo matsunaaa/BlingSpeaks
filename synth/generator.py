@@ -1,14 +1,14 @@
 """Main sound generator that combines all synthesis components."""
 
 import numpy as np
-from synth.oscillators import mix_oscillators, noise
-from synth.filters import formant_filter, lowpass, resonant_filter, apply_filter_envelope
-from synth.envelopes import adsr_envelope, pluck_envelope, swell_envelope, tremolo_envelope
-from synth.contours import (
+from .oscillators import mix_oscillators, noise
+from .filters import formant_filter, lowpass, resonant_filter, apply_filter_envelope
+from .envelopes import adsr_envelope, pluck_envelope, swell_envelope, tremolo_envelope
+from .contours import (
     flat_contour, rising_contour, falling_contour, question_contour,
     exclaim_contour, wobble_contour, nervous_contour, chirp_contour, stutter_contour
 )
-from synth.formant_synth import VOWEL_FORMANTS, synthesize_vowel_trajectory, alien_vowel
+from .formant_synth import VOWEL_FORMANTS, synthesize_vowel_trajectory, alien_vowel
 from utils import normalize, fade_in_out
 
 
@@ -66,19 +66,20 @@ def generate_bling_sound(
     
     # Generate pitch contour
     contour_func = CONTOUR_FUNCTIONS.get(contour, flat_contour)
-    
-    if contour in ['rising', 'falling']:
-        freq_contour = contour_func(base_freq, duration, rise_amount=contour_amount, sr=sr)
-    elif contour == 'question':
-        freq_contour = contour_func(base_freq, duration, rise_amount=contour_amount, sr=sr)
+
+    # Dynamically determine the correct kwarg name for the amount parameter
+    if contour == 'falling':
+        contour_kwargs = {'fall_amount': contour_amount}
     elif contour == 'exclaim':
-        freq_contour = contour_func(base_freq, duration, peak_amount=contour_amount, sr=sr)
-    elif contour == 'wobble':
-        freq_contour = contour_func(base_freq, duration, rate=vibrato_rate, depth=contour_amount, sr=sr)
-    elif contour == 'nervous':
-        freq_contour = contour_func(base_freq, duration, sr=sr)
+        contour_kwargs = {'peak_amount': contour_amount}
+    elif contour in ['wobble', 'question']:
+        contour_kwargs = {'depth': contour_amount} if contour == 'wobble' else {'rise_amount': contour_amount}
+    elif contour in ['flat', 'nervous']:
+        contour_kwargs = {}
     else:
-        freq_contour = flat_contour(base_freq, duration, sr=sr)
+        contour_kwargs = {'rise_amount': contour_amount}
+
+    freq_contour = contour_func(base_freq, duration, sr=sr, **contour_kwargs)
     
     # Add vibrato on top of contour
     if vibrato_depth > 0:
